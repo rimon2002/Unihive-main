@@ -80,21 +80,21 @@ const PostPage = () => {
         comment="Looks good"
         createdAt="2d"
         likes={43}
-        username="johndoe"
+        username="test1"
         userAvatar="https://cdn.myanimelist.net/r/84x124/images/characters/9/131317.webp?s=d4b03c7291407bde303bc0758047f6bd"
       />
       <Comment
         comment="Looks good"
         createdAt="2d"
         likes={43}
-        username="johndoe"
+        username="test2"
         userAvatar="https://cdn.myanimelist.net/r/84x124/images/characters/9/105421.webp?s=269ff1b2bb9abe3ac1bc443d3a76e863"
       />
       <Comment
         comment="Looks good"
         createdAt="2d"
         likes={43}
-        username="johndoe"
+        username="test3"
         userAvatar="https://cdn.myanimelist.net/r/84x124/images/characters/7/284129.webp?s=a8998bf668767de58b33740886ca571c"
       />
     </>

@@ -49,7 +49,7 @@ const UserPost = ({ postImg, postTitle, likes, replies }) => {
             <Text fontSize={"sm"} fontWeight={"bold"}>
               DevRimon
             </Text>
-            <Image src="/verified.png" w={4} h={4} ml={1} />
+            <Image src="/Chest-logo-01.png" w={4} h={4} ml={1} />
           </Flex>
           <Flex gap={4} alignItems={"center"}>
             <Text fontStyle={"sm"} color={"gray.light"}>

@@ -9,7 +9,7 @@ const Header = () => {
         cursor={"pointer"}
         alt="logo"
         w={6}
-        src={colorMode === "dark" ? "/logo.jpeg" : "/logo.jpeg"}
+        src={colorMode === "dark" ? "/Chest-logo-01.png" : "/Chest-logo-01.png"}
         onClick={toggleColorMode}
       />
     </Flex>

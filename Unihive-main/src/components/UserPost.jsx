@@ -67,7 +67,7 @@ const UserPost = () => {
             borderColor={"gray.light"}
           >
             {" "}
-            <Image src="/Rimon.jpg" w={"full"} />
+            <Image src="/public/Rimon.jpg" w={"full"} />
           </Box>
         </Flex>
       </Flex>

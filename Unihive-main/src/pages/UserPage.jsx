@@ -5,7 +5,19 @@ const UserPage = () => {
   return (
     <>
       <UserHeader />
-      <UserPost />
+      <UserPost
+        likes={1200}
+        replies={401}
+        postImg="/Rimon.jpg"
+        postTitle="This is my first post"
+      />
+
+      <UserPost
+        likes={1200}
+        replies={401}
+        postImg="/Rimon.jpg"
+        postTitle="Update the website....."
+      />
     </>
   );
 };

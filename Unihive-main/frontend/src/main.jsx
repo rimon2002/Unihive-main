@@ -7,24 +7,24 @@ import { mode } from "@chakra-ui/theme-tools";
 import { BrowserRouter } from "react-router-dom";
 
 const styles = {
-  global: props => ({
+  global: (props) => ({
     body: {
       color: mode("gray.800", "whiteAlpha.900")(props),
-      bg: mode("gray.100", "#101010")(props)
-    }
-  })
+      bg: mode("gray.100", "#101010")(props),
+    },
+  }),
 };
 
 const config = {
   initialColorMode: "dark",
-  useSystemColorMode: true
+  useSystemColorMode: true,
 };
 
 const colors = {
   gray: {
     light: "#d3d3d3",
-    dark: "#1e1e1e"
-  }
+    dark: "#1e1e1e",
+  },
 };
 
 const theme = extendTheme({ config, styles, colors });

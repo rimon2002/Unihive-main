@@ -5,8 +5,10 @@ import { logoutUser } from "../controllers/userController.js";
 import { followUnFollowUser } from "../controllers/userController.js";
 import { updateUser } from "../controllers/userController.js";
 import protectRoute from "../middlewares/protectRoute.js";
-
+import { getUserProfile } from "../controllers/userController.js";
 const router = express.Router();
+
+router.get("/profile/:username", getUserProfile);
 
 router.post("/signup", signupUser);
 router.post("/login", loginUser);

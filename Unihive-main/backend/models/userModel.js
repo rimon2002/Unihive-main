@@ -49,7 +49,3 @@ const userSchema = mongoose.Schema(
 const User = mongoose.model("User", userSchema);
 
 export default User;
-
-{
-  /* Model is a table for example sql table */
-}

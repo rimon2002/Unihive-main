@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
 import Post from "../components/Post";
 import { useRecoilState } from "recoil";
-import postsAtom from "../atoms/postsAtom";
+import postsAtom from "../atoms/postsAtom.js";
 import SuggestedUsers from "../components/SuggestedUsers";
 
 const HomePage = () => {

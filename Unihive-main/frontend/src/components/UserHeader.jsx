@@ -129,7 +129,7 @@ const UserHeader = ({ user }) => {
           pb="3"
           cursor={"pointer"}
         >
-          <Text fontWeight={"bold"}> Feeds</Text>
+          <Text fontWeight={"bold"}>Posts</Text>
         </Flex>
         <Flex
           flex={1}

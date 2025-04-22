@@ -22,13 +22,14 @@ function App() {
         <Header />
         <Routes>
           <Route
-            path="/"
-            element={user ? <HomePage /> : <Navigate to="/auth" />}
-          />
-          <Route
             path="/auth"
             element={!user ? <AuthPage /> : <Navigate to="/" />}
           />
+          <Route
+            path="/"
+            element={user ? <HomePage /> : <Navigate to="/auth" />}
+          />
+
           <Route
             path="/update"
             element={user ? <UpdateProfilePage /> : <Navigate to="/auth" />}

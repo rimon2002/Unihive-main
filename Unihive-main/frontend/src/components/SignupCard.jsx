@@ -13,6 +13,8 @@ import {
   Text,
   useColorModeValue,
   Link,
+  Radio,
+  RadioGroup,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
@@ -29,6 +31,7 @@ export default function SignupCard() {
     username: "",
     email: "",
     password: "",
+    role: "Student", // Default role
   });
 
   const showToast = useShowToast();
@@ -53,7 +56,7 @@ export default function SignupCard() {
       localStorage.setItem("user-Unihive-main", JSON.stringify(data));
       setUser(data);
     } catch (error) {
-      showToast("Error", error, "error");
+      showToast("Error", error.message, "error");
     }
   };
 
@@ -130,9 +133,24 @@ export default function SignupCard() {
                 </InputRightElement>
               </InputGroup>
             </FormControl>
+
+            {/* Role Selection */}
+            <FormControl isRequired>
+              <FormLabel>Role</FormLabel>
+              <RadioGroup
+                value={inputs.role}
+                onChange={(value) => setInputs({ ...inputs, role: value })}
+              >
+                <Stack spacing={3} direction="column">
+                  <Radio value="Student">Student</Radio>
+                  <Radio value="Faculty">Faculty</Radio>
+                  <Radio value="Alumni">Alumni</Radio>
+                </Stack>
+              </RadioGroup>
+            </FormControl>
+
             <Stack spacing={10} pt={2}>
               <Button
-                loadingText="Submitting"
                 size="lg"
                 bg={useColorModeValue("gray.600", "gray.700")}
                 color={"white"}

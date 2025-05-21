@@ -6,27 +6,21 @@ import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
 
 const getUserProfile = async (req, res) => {
-  // We will fetch user profile either with username or userId
-  // query is either username or userId
   const { query } = req.params;
 
   try {
     let user;
-
-    // query is userId
     if (mongoose.Types.ObjectId.isValid(query)) {
       user = await User.findOne({ _id: query })
         .select("-password")
         .select("-updatedAt");
     } else {
-      // query is username
       user = await User.findOne({ username: query })
         .select("-password")
         .select("-updatedAt");
     }
 
     if (!user) return res.status(404).json({ error: "User not found" });
-
     res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -36,21 +30,25 @@ const getUserProfile = async (req, res) => {
 
 const signupUser = async (req, res) => {
   try {
-    const { name, email, username, password } = req.body;
-    const user = await User.findOne({ $or: [{ email }, { username }] });
+    const { name, email, username, password, role } = req.body;
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
 
-    if (user) {
+    if (existingUser) {
       return res.status(400).json({ error: "User already exists" });
     }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    const userRole = role || "Student";
 
     const newUser = new User({
       name,
       email,
       username,
       password: hashedPassword,
+      role: userRole,
     });
+
     await newUser.save();
 
     if (newUser) {
@@ -63,6 +61,7 @@ const signupUser = async (req, res) => {
         username: newUser.username,
         bio: newUser.bio,
         profilePic: newUser.profilePic,
+        role: newUser.role,
       });
     } else {
       res.status(400).json({ error: "Invalid user data" });
@@ -99,6 +98,7 @@ const loginUser = async (req, res) => {
       username: user.username,
       bio: user.bio,
       profilePic: user.profilePic,
+      role: user.role,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -112,7 +112,7 @@ const logoutUser = (req, res) => {
     res.status(200).json({ message: "User logged out successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
-    console.log("Error in signupUser: ", err.message);
+    console.log("Error in logoutUser: ", err.message);
   }
 };
 
@@ -133,12 +133,10 @@ const followUnFollowUser = async (req, res) => {
     const isFollowing = currentUser.following.includes(id);
 
     if (isFollowing) {
-      // Unfollow user
       await User.findByIdAndUpdate(id, { $pull: { followers: req.user._id } });
       await User.findByIdAndUpdate(req.user._id, { $pull: { following: id } });
       res.status(200).json({ message: "User unfollowed successfully" });
     } else {
-      // Follow user
       await User.findByIdAndUpdate(id, { $push: { followers: req.user._id } });
       await User.findByIdAndUpdate(req.user._id, { $push: { following: id } });
       res.status(200).json({ message: "User followed successfully" });
@@ -150,7 +148,7 @@ const followUnFollowUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { name, email, username, password, bio } = req.body;
+  const { name, email, username, password, bio, role } = req.body;
   let { profilePic } = req.body;
 
   const userId = req.user._id;
@@ -185,10 +183,10 @@ const updateUser = async (req, res) => {
     user.username = username || user.username;
     user.profilePic = profilePic || user.profilePic;
     user.bio = bio || user.bio;
+    user.role = role || user.role; // ✅ Include role update
 
     user = await user.save();
 
-    // Find all posts that this user replied and update username and userProfilePic fields
     await Post.updateMany(
       { "replies.userId": userId },
       {
@@ -200,7 +198,6 @@ const updateUser = async (req, res) => {
       { arrayFilters: [{ "reply.userId": userId }] }
     );
 
-    // password should be null in response
     user.password = null;
 
     res.status(200).json(user);
@@ -212,9 +209,7 @@ const updateUser = async (req, res) => {
 
 const getSuggestedUsers = async (req, res) => {
   try {
-    // exclude the current user from suggested users array and exclude users that current user is already following
     const userId = req.user._id;
-
     const usersFollowedByYou = await User.findById(userId).select("following");
 
     const users = await User.aggregate([
@@ -227,11 +222,12 @@ const getSuggestedUsers = async (req, res) => {
         $sample: { size: 10 },
       },
     ]);
+
     const filteredUsers = users.filter(
       (user) => !usersFollowedByYou.following.includes(user._id)
     );
-    const suggestedUsers = filteredUsers.slice(0, 4);
 
+    const suggestedUsers = filteredUsers.slice(0, 4);
     suggestedUsers.forEach((user) => (user.password = null));
 
     res.status(200).json(suggestedUsers);

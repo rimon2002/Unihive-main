@@ -9,6 +9,8 @@ import {
   useColorModeValue,
   Avatar,
   Center,
+  RadioGroup,
+  Radio,
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { useRecoilState } from "recoil";
@@ -24,12 +26,12 @@ export default function UpdateProfilePage() {
     email: user.email,
     bio: user.bio,
     password: "",
+    role: user.role || "Student", // Default to Student if undefined
   });
+
   const fileRef = useRef(null);
   const [updating, setUpdating] = useState(false);
-
   const showToast = useShowToast();
-
   const { handleImageChange, imgUrl } = usePreviewImg();
 
   const handleSubmit = async (e) => {
@@ -44,11 +46,13 @@ export default function UpdateProfilePage() {
         },
         body: JSON.stringify({ ...inputs, profilePic: imgUrl }),
       });
-      const data = await res.json(); // updated user object
+
+      const data = await res.json();
       if (data.error) {
         showToast("Error", data.error, "error");
         return;
       }
+
       showToast("Success", "Profile updated successfully", "success");
       setUser(data);
       localStorage.setItem("user-threads", JSON.stringify(data));
@@ -58,6 +62,7 @@ export default function UpdateProfilePage() {
       setUpdating(false);
     }
   };
+
   return (
     <form onSubmit={handleSubmit}>
       <Flex align={"center"} justify={"center"} my={6}>
@@ -73,6 +78,7 @@ export default function UpdateProfilePage() {
           <Heading lineHeight={1.1} fontSize={{ base: "2xl", sm: "3xl" }}>
             User Profile Edit
           </Heading>
+
           <FormControl id="userName">
             <Stack direction={["column", "row"]} spacing={6}>
               <Center>
@@ -95,6 +101,7 @@ export default function UpdateProfilePage() {
               </Center>
             </Stack>
           </FormControl>
+
           <FormControl>
             <FormLabel>Full name</FormLabel>
             <Input
@@ -105,6 +112,7 @@ export default function UpdateProfilePage() {
               type="text"
             />
           </FormControl>
+
           <FormControl>
             <FormLabel>User name</FormLabel>
             <Input
@@ -117,6 +125,7 @@ export default function UpdateProfilePage() {
               type="text"
             />
           </FormControl>
+
           <FormControl>
             <FormLabel>Email address</FormLabel>
             <Input
@@ -127,6 +136,7 @@ export default function UpdateProfilePage() {
               type="email"
             />
           </FormControl>
+
           <FormControl>
             <FormLabel>Bio</FormLabel>
             <Input
@@ -137,6 +147,7 @@ export default function UpdateProfilePage() {
               type="text"
             />
           </FormControl>
+
           <FormControl>
             <FormLabel>Password</FormLabel>
             <Input
@@ -149,14 +160,30 @@ export default function UpdateProfilePage() {
               type="password"
             />
           </FormControl>
+
+          {/* Role Selector */}
+          <FormControl>
+            <FormLabel>Role</FormLabel>
+            <RadioGroup
+              value={inputs.role}
+              onChange={(value) => setInputs({ ...inputs, role: value })}
+            >
+              <Stack direction="row">
+                <Radio value="Student">Student</Radio>
+                <Radio value="Faculty">Faculty</Radio>
+                <Radio value="Alumni">Alumni</Radio>
+              </Stack>
+            </RadioGroup>
+          </FormControl>
+
           <Stack spacing={6} direction={["column", "row"]}>
             <Button
               bg={"red.400"}
               color={"white"}
               w="full"
-              _hover={{
-                bg: "red.500",
-              }}
+              _hover={{ bg: "red.500" }}
+              type="button"
+              onClick={() => window.history.back()}
             >
               Cancel
             </Button>
@@ -164,9 +191,7 @@ export default function UpdateProfilePage() {
               bg={"green.400"}
               color={"white"}
               w="full"
-              _hover={{
-                bg: "green.500",
-              }}
+              _hover={{ bg: "green.500" }}
               type="submit"
               isLoading={updating}
             >

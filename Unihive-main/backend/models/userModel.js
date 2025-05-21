@@ -41,11 +41,17 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    role: {
+      type: String, // ✅ Changed from [String] to String
+      enum: ["Student", "Faculty", "Alumni"], // ✅ Still restrict to allowed roles
+      default: "Student", // ✅ Default is string
+    },
   },
   {
     timestamps: true,
   }
 );
+
 const User = mongoose.model("User", userSchema);
 
 export default User;

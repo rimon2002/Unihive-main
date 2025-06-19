@@ -1,30 +1,34 @@
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
-  Flex,
   Box,
+  Button,
+  Flex,
   FormControl,
   FormLabel,
+  Heading,
+  HStack,
   Input,
   InputGroup,
-  HStack,
   InputRightElement,
-  Stack,
-  Button,
-  Heading,
-  Text,
-  useColorModeValue,
   Link,
   Radio,
   RadioGroup,
+  Stack,
+  Text,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useSetRecoilState } from "recoil";
 import authScreenAtom from "../atoms/authAtom";
-import useShowToast from "../hooks/useShowToast";
 import userAtom from "../atoms/userAtom";
+import useShowToast from "../hooks/useShowToast";
 
 export default function SignupCard() {
   const [showPassword, setShowPassword] = useState(false);
+  const [studentCredentials, setStudentCredentials] = useState({
+    studentId: "",
+    studentPassword: "",
+  });
   const setAuthScreen = useSetRecoilState(authScreenAtom);
   const [inputs, setInputs] = useState({
     name: "",
@@ -37,14 +41,39 @@ export default function SignupCard() {
   const showToast = useShowToast();
   const setUser = useSetRecoilState(userAtom);
 
+  // Dummy student ID and password
+  const dummyStudentId = "student123";
+  const dummyStudentPassword = "studentpass";
+
   const handleSignup = async () => {
+    // If "Student" role is selected, validate student ID and password
+    if (inputs.role === "Student") {
+      if (
+        studentCredentials.studentId !== dummyStudentId ||
+        studentCredentials.studentPassword !== dummyStudentPassword
+      ) {
+        showToast("Error", "Invalid student ID or password", "error");
+        return;
+      }
+    }
+
     try {
+      // Add studentId and studentPassword to the request body if role is "Student"
+      const formData =
+        inputs.role === "Student"
+          ? {
+              ...inputs,
+              studentId: studentCredentials.studentId,
+              studentPassword: studentCredentials.studentPassword,
+            }
+          : inputs;
+
       const res = await fetch("/api/users/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(inputs),
+        body: JSON.stringify(formData),
       });
       const data = await res.json();
 
@@ -148,6 +177,38 @@ export default function SignupCard() {
                 </Stack>
               </RadioGroup>
             </FormControl>
+
+            {/* Additional inputs for Student Role */}
+            {inputs.role === "Student" && (
+              <>
+                <FormControl isRequired>
+                  <FormLabel>Student ID</FormLabel>
+                  <Input
+                    type="text"
+                    onChange={(e) =>
+                      setStudentCredentials({
+                        ...studentCredentials,
+                        studentId: e.target.value,
+                      })
+                    }
+                    value={studentCredentials.studentId}
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Student Password</FormLabel>
+                  <Input
+                    type="password"
+                    onChange={(e) =>
+                      setStudentCredentials({
+                        ...studentCredentials,
+                        studentPassword: e.target.value,
+                      })
+                    }
+                    value={studentCredentials.studentPassword}
+                  />
+                </FormControl>
+              </>
+            )}
 
             <Stack spacing={10} pt={2}>
               <Button

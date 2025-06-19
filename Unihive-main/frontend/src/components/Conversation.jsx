@@ -10,13 +10,12 @@ import {
   useColorMode,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { useRecoilState, useRecoilValue } from "recoil";
-import userAtom from "../atoms/userAtom";
 import { BsCheck2All, BsFillImageFill } from "react-icons/bs";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { selectedConversationAtom } from "../atoms/messagesAtom";
+import userAtom from "../atoms/userAtom";
 
 const Conversation = ({ conversation, isOnline }) => {
-  const user = conversation.participants[0];
   const currentUser = useRecoilValue(userAtom);
   const lastMessage = conversation.lastMessage;
   const [selectedConversation, setSelectedConversation] = useRecoilState(
@@ -24,7 +23,13 @@ const Conversation = ({ conversation, isOnline }) => {
   );
   const colorMode = useColorMode();
 
-  console.log("selectedConverstion", selectedConversation);
+  // Check if the participants array is not empty and the first participant exists
+  const user = conversation.participants && conversation.participants[0];
+
+  if (!user) {
+    return null; // If no user exists, render nothing
+  }
+
   return (
     <Flex
       gap={4}

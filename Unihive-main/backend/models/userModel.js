@@ -42,10 +42,16 @@ const userSchema = mongoose.Schema(
       default: false,
     },
     role: {
-      type: String, // ✅ Changed from [String] to String
-      enum: ["Student", "Faculty", "Alumni"], // ✅ Still restrict to allowed roles
-      default: "Student", // ✅ Default is string
+      type: String,
+      enum: ["Student", "Faculty", "Alumni"],
+      default: "Student",
     },
+    groups: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Group", // Reference to the Group model
+      },
+    ],
   },
   {
     timestamps: true,

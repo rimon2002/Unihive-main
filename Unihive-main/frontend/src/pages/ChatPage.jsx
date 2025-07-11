@@ -3,26 +3,30 @@ import {
   Box,
   Button,
   Flex,
+  Icon,
   Input,
   Skeleton,
   SkeletonCircle,
   Text,
   useColorModeValue,
 } from "@chakra-ui/react";
-import Conversation from "../components/Conversation";
-import { GiConversation } from "react-icons/gi";
-import MessageContainer from "../components/MessageContainer";
 import { useEffect, useState } from "react";
-import useShowToast from "../hooks/useShowToast";
+import { FaUsers } from "react-icons/fa"; // Icon for Create Group
+import { GiConversation } from "react-icons/gi";
+import { useNavigate } from "react-router-dom"; // For navigation to Create Group page
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   conversationsAtom,
   selectedConversationAtom,
 } from "../atoms/messagesAtom";
-import userAtom from "../atoms/userAtom";
+import userAtom from "../atoms/userAtom"; // Ensure userAtom is imported correctly
+import Conversation from "../components/Conversation";
+import MessageContainer from "../components/MessageContainer";
 import { useSocket } from "../context/SocketContext";
+import useShowToast from "../hooks/useShowToast";
 
 const ChatPage = () => {
+  const user = useRecoilValue(userAtom); // Get the user state from recoil
   const [searchingUser, setSearchingUser] = useState(false);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [searchText, setSearchText] = useState("");
@@ -30,10 +34,15 @@ const ChatPage = () => {
     selectedConversationAtom
   );
   const [conversations, setConversations] = useRecoilState(conversationsAtom);
-  const currentUser = useRecoilValue(userAtom);
   const showToast = useShowToast();
   const { socket, onlineUsers } = useSocket();
+  const navigate = useNavigate(); // Use navigate to redirect to the create group page
 
+  if (!user) {
+    return <Text>Loading...</Text>; // Show loading text if user is not available
+  }
+
+  // Handle conversation selection and updating last message seen
   useEffect(() => {
     socket?.on("messagesSeen", ({ conversationId }) => {
       setConversations((prev) => {
@@ -54,6 +63,7 @@ const ChatPage = () => {
     });
   }, [socket, setConversations]);
 
+  // Fetch conversations from the API
   useEffect(() => {
     const getConversations = async () => {
       try {
@@ -63,7 +73,6 @@ const ChatPage = () => {
           showToast("Error", data.error, "error");
           return;
         }
-        console.log(data);
         setConversations(data);
       } catch (error) {
         showToast("Error", error.message, "error");
@@ -75,6 +84,7 @@ const ChatPage = () => {
     getConversations();
   }, [showToast, setConversations]);
 
+  // Handle user search for starting a conversation
   const handleConversationSearch = async (e) => {
     e.preventDefault();
     setSearchingUser(true);
@@ -86,7 +96,7 @@ const ChatPage = () => {
         return;
       }
 
-      const messagingYourself = searchedUser._id === currentUser._id;
+      const messagingYourself = searchedUser._id === user._id;
       if (messagingYourself) {
         showToast("Error", "You cannot message yourself", "error");
         return;
@@ -129,6 +139,11 @@ const ChatPage = () => {
     }
   };
 
+  // Handle the navigation to the Create Group page
+  const handleCreateGroupClick = () => {
+    navigate("/create-group"); // Navigate to group creation page
+  };
+
   return (
     <Box
       position={"absolute"}
@@ -140,12 +155,10 @@ const ChatPage = () => {
       <Flex
         gap={4}
         flexDirection={{ base: "column", md: "row" }}
-        maxW={{
-          sm: "400px",
-          md: "full",
-        }}
+        maxW={{ sm: "400px", md: "full" }}
         mx={"auto"}
       >
+        {/* Left Section - Conversations */}
         <Flex
           flex={30}
           gap={2}
@@ -159,6 +172,8 @@ const ChatPage = () => {
           >
             Your Conversations
           </Text>
+
+          {/* Search Form */}
           <form onSubmit={handleConversationSearch}>
             <Flex alignItems={"center"} gap={2}>
               <Input
@@ -175,6 +190,7 @@ const ChatPage = () => {
             </Flex>
           </form>
 
+          {/* Loading Skeletons */}
           {loadingConversations &&
             [0, 1, 2, 3, 4].map((_, i) => (
               <Flex
@@ -194,17 +210,20 @@ const ChatPage = () => {
               </Flex>
             ))}
 
+          {/* Render Conversations */}
           {!loadingConversations &&
             conversations.map((conversation) => (
               <Conversation
                 key={conversation._id}
                 isOnline={onlineUsers.includes(
-                  conversation.participants[0]._id
+                  conversation.participants[0]?._id
                 )}
                 conversation={conversation}
               />
             ))}
         </Flex>
+
+        {/* Right Section - Message Container or No Conversation Selected */}
         {!selectedConversation._id && (
           <Flex
             flex={70}
@@ -220,8 +239,24 @@ const ChatPage = () => {
           </Flex>
         )}
 
+        {/* Message Container for selected conversation */}
         {selectedConversation._id && <MessageContainer />}
       </Flex>
+
+      {/* Create Group Button */}
+      {user && (
+        <Button
+          onClick={handleCreateGroupClick}
+          leftIcon={<Icon as={FaUsers} />} // Group icon
+          colorScheme="teal"
+          variant="solid"
+          size="md"
+          mt={4} // Margin top for spacing
+          width="auto"
+        >
+          Create Group
+        </Button>
+      )}
     </Box>
   );
 };

@@ -45,6 +45,7 @@ const userSchema = mongoose.Schema(
       type: String,
       enum: ["Student", "Faculty", "Alumni"],
       default: "Student",
+<<<<<<< HEAD
     },
     studentId: {  // New field for student ID
       type: String,
@@ -53,7 +54,15 @@ const userSchema = mongoose.Schema(
     studentPassword: {  // New field for student password
       type: String,
       required: true,
+=======
+>>>>>>> 1fc7699411d17cce5f82b80e4782caa8dcdfd6de
     },
+    groups: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Group", // Reference to the Group model
+      },
+    ],
   },
   {
     timestamps: true,

@@ -1,36 +1,39 @@
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
-  Flex,
   Box,
+  Button,
+  Flex,
   FormControl,
   FormLabel,
+  Heading,
+  HStack,
   Input,
   InputGroup,
-  HStack,
   InputRightElement,
-  Stack,
-  Button,
-  Heading,
-  Text,
-  useColorModeValue,
   Link,
   Radio,
   RadioGroup,
+  Stack,
+  Text,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useSetRecoilState } from "recoil";
 import authScreenAtom from "../atoms/authAtom";
-import useShowToast from "../hooks/useShowToast";
 import userAtom from "../atoms/userAtom";
+import useShowToast from "../hooks/useShowToast";
 
 export default function SignupCard() {
   const [showPassword, setShowPassword] = useState(false);
+  const [showStudentPassword, setShowStudentPassword] = useState(false); // State for showing student password
   const setAuthScreen = useSetRecoilState(authScreenAtom);
   const [inputs, setInputs] = useState({
     name: "",
     username: "",
     email: "",
     password: "",
+    studentId: "",
+    studentPassword: "", // New studentPassword field
     role: "Student", // Default role
   });
 
@@ -129,6 +132,44 @@ export default function SignupCard() {
                     }
                   >
                     {showPassword ? <ViewIcon /> : <ViewOffIcon />}
+                  </Button>
+                </InputRightElement>
+              </InputGroup>
+            </FormControl>
+
+            {/* New Student ID Field */}
+            <FormControl isRequired>
+              <FormLabel>Student ID</FormLabel>
+              <Input
+                type="text"
+                onChange={(e) =>
+                  setInputs({ ...inputs, studentId: e.target.value })
+                }
+                value={inputs.studentId}
+              />
+            </FormControl>
+
+            {/* New Student Password Field */}
+            <FormControl isRequired>
+              <FormLabel>Student Password</FormLabel>
+              <InputGroup>
+                <Input
+                  type={showStudentPassword ? "text" : "password"}
+                  onChange={(e) =>
+                    setInputs({ ...inputs, studentPassword: e.target.value })
+                  }
+                  value={inputs.studentPassword}
+                />
+                <InputRightElement h={"full"}>
+                  <Button
+                    variant={"ghost"}
+                    onClick={() =>
+                      setShowStudentPassword(
+                        (showStudentPassword) => !showStudentPassword
+                      )
+                    }
+                  >
+                    {showStudentPassword ? <ViewIcon /> : <ViewOffIcon />}
                   </Button>
                 </InputRightElement>
               </InputGroup>

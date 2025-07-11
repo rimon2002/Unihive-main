@@ -1,56 +1,55 @@
-import User from "../models/userModel.js";
-import Post from "../models/postModel.js";
 import bcrypt from "bcryptjs";
-import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
-import { v2 as cloudinary } from "cloudinary";
+import cloudinary from 'cloudinary';
 import mongoose from "mongoose";
+import Post from "../models/postModel.js";
+import User from "../models/userModel.js";
+import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 
-const getUserProfile = async (req, res) => {
-  const { query } = req.params;
-
-  try {
-    let user;
-    if (mongoose.Types.ObjectId.isValid(query)) {
-      user = await User.findOne({ _id: query })
-        .select("-password")
-        .select("-updatedAt");
-    } else {
-      user = await User.findOne({ username: query })
-        .select("-password")
-        .select("-updatedAt");
-    }
-
-    if (!user) return res.status(404).json({ error: "User not found" });
-    res.status(200).json(user);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-    console.log("Error in getUserProfile: ", err.message);
-  }
-};
+// Predefined fixed values for studentId and studentPassword
+const fixedStudentId = "id";  // Fixed Student ID
+const fixedStudentPassword = "pass";  // Fixed Student Password
 
 const signupUser = async (req, res) => {
   try {
-    const { name, email, username, password, role } = req.body;
+    const { name, email, username, password, studentId, studentPassword, role } = req.body;
+
+    // Check if user already exists by email or username
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
 
     if (existingUser) {
       return res.status(400).json({ error: "User already exists" });
     }
 
+    // Ensure the provided studentId and studentPassword match the fixed ones
+    if (studentId !== fixedStudentId || studentPassword !== fixedStudentPassword) {
+      return res.status(400).json({ error: "Invalid Student ID or Student Password" });
+    }
+
+    // Hash the regular password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Hash the student password
+    const hashedStudentPassword = await bcrypt.hash(studentPassword, salt);
+
+    // Set default role if none provided
     const userRole = role || "Student";
 
+    // Create new user
     const newUser = new User({
       name,
       email,
       username,
       password: hashedPassword,
+      studentId: fixedStudentId,  // Use the fixed Student ID
+      studentPassword: hashedStudentPassword,  // Use the fixed Student Password (hashed)
       role: userRole,
     });
 
+    // Save new user to database
     await newUser.save();
 
+    // Generate token and set cookie
     if (newUser) {
       generateTokenAndSetCookie(newUser._id, res);
 
@@ -183,7 +182,7 @@ const updateUser = async (req, res) => {
     user.username = username || user.username;
     user.profilePic = profilePic || user.profilePic;
     user.bio = bio || user.bio;
-    user.role = role || user.role; // ✅ Include role update
+    user.role = role || user.role;
 
     user = await user.save();
 
@@ -207,32 +206,26 @@ const updateUser = async (req, res) => {
   }
 };
 
-const getSuggestedUsers = async (req, res) => {
+const getUserProfile = async (req, res) => {
+  const { query } = req.params;
+
   try {
-    const userId = req.user._id;
-    const usersFollowedByYou = await User.findById(userId).select("following");
+    let user;
+    if (mongoose.Types.ObjectId.isValid(query)) {
+      user = await User.findOne({ _id: query })
+        .select("-password")
+        .select("-updatedAt");
+    } else {
+      user = await User.findOne({ username: query })
+        .select("-password")
+        .select("-updatedAt");
+    }
 
-    const users = await User.aggregate([
-      {
-        $match: {
-          _id: { $ne: userId },
-        },
-      },
-      {
-        $sample: { size: 10 },
-      },
-    ]);
-
-    const filteredUsers = users.filter(
-      (user) => !usersFollowedByYou.following.includes(user._id)
-    );
-
-    const suggestedUsers = filteredUsers.slice(0, 4);
-    suggestedUsers.forEach((user) => (user.password = null));
-
-    res.status(200).json(suggestedUsers);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log("Error in getUserProfile: ", err.message);
   }
 };
 
@@ -243,8 +236,8 @@ const freezeAccount = async (req, res) => {
       return res.status(400).json({ error: "User not found" });
     }
 
-    user.isFrozen = true;
-    await user.save();
+    user.isFrozen = true;  // Freeze the user account
+    await user.save();  // Save the updated user document
 
     res.status(200).json({ success: true });
   } catch (error) {
@@ -252,13 +245,38 @@ const freezeAccount = async (req, res) => {
   }
 };
 
-export {
-  signupUser,
-  loginUser,
-  logoutUser,
-  followUnFollowUser,
-  updateUser,
-  getUserProfile,
-  getSuggestedUsers,
-  freezeAccount,
+const getSuggestedUsers = async (req, res) => {
+  try {
+    const userId = req.user._id;  // The currently authenticated user's ID
+    const usersFollowedByYou = await User.findById(userId).select("following");
+
+    // Fetch random users that the current user is not following
+    const users = await User.aggregate([
+      { $match: { _id: { $ne: userId } } },  // Exclude the current user
+      { $sample: { size: 10 } },  // Randomly sample 10 users
+    ]);
+
+    // Filter out users that the current user is already following
+    const filteredUsers = users.filter(
+      (user) => !usersFollowedByYou.following.includes(user._id)
+    );
+
+    // Slice to get top 4 suggested users
+    const suggestedUsers = filteredUsers.slice(0, 4);
+
+    // Remove the password field before sending the response
+    suggestedUsers.forEach((user) => (user.password = null));
+
+    res.status(200).json(suggestedUsers);  // Send the suggested users
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+    console.log("Error in getSuggestedUsers: ", error.message);
+  }
 };
+
+
+export {
+  followUnFollowUser, freezeAccount, getSuggestedUsers, getUserProfile, loginUser,
+  logoutUser, signupUser, updateUser
+};
+
